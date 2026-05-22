@@ -2,18 +2,19 @@ import os
 import json
 import requests
 from base64 import b64encode
-
+ 
 JIRA_EMAIL    = os.environ['JIRA_EMAIL']
 JIRA_TOKEN    = os.environ['JIRA_API_TOKEN']
 JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
-FILTER_ID     = os.environ['JIRA_FILTER_ID']
-
+ 
 auth = b64encode(f"{JIRA_EMAIL}:{JIRA_TOKEN}".encode()).decode()
 headers = {
     'Authorization': f'Basic {auth}',
     'Content-Type': 'application/json'
 }
-
+ 
+JQL = 'project = ITSM AND issuetype = "[System] Change" AND "Data e hora de início" is not EMPTY ORDER BY "Data e hora de início" ASC'
+ 
 def fetch_issues():
     issues = []
     start = 0
@@ -21,7 +22,7 @@ def fetch_issues():
     while True:
         url = f"{JIRA_BASE_URL}/rest/api/3/search"
         params = {
-            'jql': f'filter={FILTER_ID} ORDER BY "Data e hora de início" ASC',
+            'jql': JQL,
             'startAt': start,
             'maxResults': max_results,
             'fields': 'summary,status,customfield_10160,customfield_10161,customfield_10166,customfield_12320'
@@ -48,13 +49,13 @@ def fetch_issues():
         start += max_results
     print(f"Total de RDMs: {len(issues)}")
     return issues
-
+ 
 def generate_html(issues):
     with open('index.html', 'r', encoding='utf-8') as f:
         content = f.read()
-
+ 
     issues_json = json.dumps(issues, ensure_ascii=False)
-
+ 
     import re
     content = re.sub(
         r'const ISSUES = \[.*?\];',
@@ -62,12 +63,12 @@ def generate_html(issues):
         content,
         flags=re.DOTALL
     )
-
+ 
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(content)
-
+ 
     print("index.html atualizado com sucesso!")
-
+ 
 if __name__ == '__main__':
     issues = fetch_issues()
     generate_html(issues)
