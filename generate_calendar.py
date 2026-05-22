@@ -9,7 +9,8 @@ JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
 
 auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_TOKEN)
 
-JQL = 'project = ITSM AND issuetype = "[System] Change" AND cf[10160] is not EMPTY ORDER BY cf[10160] ASC'
+# JQL simplificado sem filtro de data para garantir que retorna resultados
+JQL = 'project = ITSM AND issuetype = "[System] Change" ORDER BY created ASC'
 
 FIELDS = ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
 
@@ -38,8 +39,12 @@ def fetch_issues():
         resp.raise_for_status()
         data = resp.json()
         batch = data.get('issues', [])
+
         for i in batch:
             f = i['fields']
+            # Só inclui RDMs que têm data de início preenchida
+            if not f.get('customfield_10160'):
+                continue
             tipo_obj = f.get('customfield_10166')
             classif_obj = f.get('customfield_12320')
             issues.append({
@@ -51,12 +56,13 @@ def fetch_issues():
                 'tipo': tipo_obj['value'] if tipo_obj else '',
                 'classificacao': classif_obj['value'] if classif_obj else ''
             })
+
         print(f"Buscados até agora: {len(issues)}")
         next_page_token = data.get('nextPageToken')
         if not next_page_token or data.get('isLast', True):
             break
 
-    print(f"Total de RDMs: {len(issues)}")
+    print(f"Total de RDMs com data: {len(issues)}")
     return issues
 
 def generate_html(issues):
