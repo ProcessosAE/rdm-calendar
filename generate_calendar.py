@@ -10,7 +10,8 @@ JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
 auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_TOKEN)
 headers = { 'Accept': 'application/json' }
 
-JQL = 'project = ITSM AND issuetype = "[System] Change" AND "Data e hora de início" is not EMPTY ORDER BY "Data e hora de início" ASC'
+# Usando customfield_10160 diretamente para evitar problema de encoding com caracteres especiais
+JQL = 'project = ITSM AND issuetype = "[System] Change" AND cf[10160] is not EMPTY ORDER BY cf[10160] ASC'
 
 def fetch_issues():
     issues = []
@@ -18,14 +19,17 @@ def fetch_issues():
     max_results = 100
     while True:
         url = f"{JIRA_BASE_URL}/rest/api/2/search"
-        params = {
+        # Usar POST para evitar problemas de encoding na URL
+        payload = {
             'jql': JQL,
             'startAt': start,
             'maxResults': max_results,
-            'fields': 'summary,status,customfield_10160,customfield_10161,customfield_10166,customfield_12320'
+            'fields': ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
         }
-        resp = requests.get(url, auth=auth, headers=headers, params=params)
-        print(f"Status: {resp.status_code}, URL: {resp.url}")
+        resp = requests.post(url, auth=auth, headers={**headers, 'Content-Type': 'application/json'}, json=payload)
+        print(f"Status: {resp.status_code}")
+        if resp.status_code != 200:
+            print(f"Erro: {resp.text}")
         resp.raise_for_status()
         data = resp.json()
         batch = data.get('issues', [])
@@ -37,8 +41,8 @@ def fetch_issues():
                 'key': i['key'],
                 'summary': f['summary'],
                 'status': f['status']['name'],
-                'start': f.get('customfield_10160', '') or '',
-                'end': f.get('customfield_10161', '') or '',
+                'start': f.get('customfield_10160') or '',
+                'end': f.get('customfield_10161') or '',
                 'tipo': tipo_obj['value'] if tipo_obj else '',
                 'classificacao': classif_obj['value'] if classif_obj else ''
             })
