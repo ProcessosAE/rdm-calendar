@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário RDMs v2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; font-size: 13px; padding: 16px; }
+
+/* Header */
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-title { font-size: 17px; font-weight: 600; }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav button { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; color: #333; }
+.cal-nav button:hover { background: #f5f5f5; }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat-card { background: #f7f7f7; border-radius: 8px; padding: 10px 12px; border: 2px solid transparent; }
+.stat-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+.stat-value { font-size: 20px; font-weight: 600; color: #1a1a1a; }
+.stat-value-link { font-size: 20px; font-weight: 600; color: #0052cc; cursor: pointer; text-decoration: none; display: inline-block; }
+.stat-value-link:hover { text-decoration: underline; }
+
+/* Filters */
+.filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filter-label { font-size: 11px; color: #666; }
+.filter-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #d0d0d0; cursor: pointer; background: #fff; color: #555; }
+.filter-btn.active { background: #f0f0f0; color: #1a1a1a; font-weight: 600; border-color: #999; }
+
+/* Grid */
+.cal-grid { border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background: #f7f7f7; border-bottom: 1px solid #e0e0e0; }
+.cal-weekday { text-align: center; font-size: 11px; font-weight: 600; color: #555; padding: 7px 4px; border-right: 1px solid #e0e0e0; }
+.cal-weekday:last-child { border-right: none; }
+.cal-weekday.wk-dom { color: #c0392b; }
+.cal-weekday.wk-sab { color: #0052cc; }
+.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-day { min-height: 90px; border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; padding: 5px; background: #fff; }
+.cal-day:nth-child(7n) { border-right: none; }
+.cal-day.other-month { background: #fafafa; }
+.cal-day.today .day-num-inner { background: #0052cc; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+.day-num { font-size: 11px; margin-bottom: 3px; font-weight: 600; display: flex; }
+.day-num-inner { color: #555; }
+.day-num-inner.dom { color: #c0392b; }
+.day-num-inner.sab { color: #0052cc; }
+.day-num-inner.feriado { color: #c0392b; }
+
+/* RDM items */
+.rdm-list { display: flex; flex-direction: column; gap: 2px; }
+.rdm-item { font-size: 10.5px; display: flex; align-items: center; gap: 3px; padding: 1px 3px; border-radius: 3px; color: #1a1a1a; text-decoration: none; line-height: 1.5; }
+.rdm-item:hover { background: #f0f0f0; }
+.rdm-dot { font-size: 8px; flex-shrink: 0; }
+.rdm-key { font-weight: 600; flex-shrink: 0; font-size: 10.5px; }
+.more-badge { font-size: 10px; color: #0052cc; padding: 1px 3px; margin-top: 2px; cursor: pointer; font-weight: 600; display: inline-block; border-radius: 3px; }
+.more-badge:hover { background: #e8f0fe; }
+
+/* Legend */
+.legend-row { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
+
+/* Freezing */
+.freeze-bar { background: #fdecea; border-bottom: 2px solid #e74c3c; padding: 2px 5px; font-size: 9px; font-weight: 600; color: #c0392b; white-space: nowrap; overflow: hidden; }
+
+/* Popup */
+.popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+.popup-overlay.hidden { display: none; }
+.popup-card { background: #fff; border: 1px solid #d0d0d0; border-radius: 10px; width: 100%; max-width: 440px; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.popup-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; border-bottom: 1px solid #e0e0e0; flex-shrink: 0; }
+.popup-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.popup-count { font-size: 12px; color: #666; margin-top: 2px; }
+.popup-close { background: transparent; border: none; cursor: pointer; color: #666; font-size: 18px; padding: 2px 7px; border-radius: 6px; line-height: 1; }
+.popup-close:hover { background: #f0f0f0; color: #1a1a1a; }
+.popup-body { overflow-y: auto; padding: 8px 12px; flex: 1; }
+.popup-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: 6px; text-decoration: none; color: #1a1a1a; border-bottom: 1px solid #f0f0f0; }
+.popup-item:last-child { border-bottom: none; }
+.popup-item:hover { background: #f7f7f7; }
+.popup-dot { font-size: 12px; margin-top: 1px; flex-shrink: 0; }
+.popup-info { flex: 1; min-width: 0; }
+.popup-key { font-size: 12px; font-weight: 600; }
+.popup-summary { font-size: 11px; color: #555; margin-top: 2px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.popup-meta { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
+.popup-hora { font-size: 10px; color: #888; }
+.popup-status-label { font-size: 10px; color: #555; }
+.popup-tipo { font-size: 10px; color: #999; }
+.popup-ext { font-size: 13px; color: #bbb; flex-shrink: 0; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div id="cal-root"></div>
+
+<div class="popup-overlay hidden" id="popup-overlay">
+  <div class="popup-card">
+    <div class="popup-header">
+      <div>
+        <div class="popup-title" id="popup-title"></div>
+        <div class="popup-count" id="popup-count"></div>
+      </div>
+      <button class="popup-close" id="popup-close">&#x2715;</button>
+    </div>
+    <div class="popup-body" id="popup-body"></div>
+  </div>
+</div>
+
+<script>
+const ISSUES = [{"key":"ITSM-1761","summary":"Atualização micro-serviço ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-04-22T20:00:00.000-0300","end":"2026-04-22T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1764","summary":"Atualização de microsserviço ambiente V3 - Stock","status":"SUCCESSFUL","start":"2026-04-23T20:00:00.000-0300","end":"2026-04-23T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1787","summary":"[Broadcast Político] Ajuste de tamanho da fonte das Manchetes","status":"SUCCESSFUL","start":"2026-04-24T20:30:00.000-0300","end":"2026-04-24T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1788","summary":"[Broader AI] Ajuste de logo e cores","status":"SUCCESSFUL","start":"2026-04-24T21:00:00.000-0300","end":"2026-04-24T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1841","summary":"Atualização AEServer NII - Versão trunk build 189","status":"Em andamento","start":"2026-04-28T20:00:00.000-0300","end":"2026-04-28T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Aeserver Ativos"},{"key":"ITSM-1834","summary":"Novo Fundos - Correção de bugs na visão geral","status":"Failed","start":"2026-04-28T20:00:00.000-0300","end":"2026-04-28T20:00:00.000-0300","tipo":"Normal","classificacao":"Fundos de Investimento"},{"key":"ITSM-1814","summary":"Atualização micro-serviço ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-04-28T21:00:00.000-0300","end":"2026-04-28T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"OMS"},{"key":"ITSM-1839","summary":"Correções no fluxo de upload de documentos - EasyTrade","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":null,"tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1838","summary":"Correções no fluxo de upload e geração de PDF - EasyTrade","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":null,"tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1816","summary":"Separar instancia MYSQL Princing Engine (Motor OTC)","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":"2026-04-29T19:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1833","summary":"REPORTS Corrigir funcionamento de popup e impressão","status":"Failed","start":"2026-04-29T20:00:00.000-0300","end":"2026-04-29T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Novo Terminal"},{"key":"ITSM-1858","summary":"Novo Fundos - Correção de bugs na visão geral","status":"SUCCESSFUL","start":"2026-04-29T20:30:00.000-0300","end":"2026-04-29T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Fundos de Investimento"},{"key":"ITSM-1871","summary":"Ajuste no carregamento dinâmico de artigos via AJAX","status":"SUCCESSFUL","start":"2026-04-30T17:00:00.000-0300","end":"2026-04-30T17:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Novo Terminal"},{"key":"ITSM-1875","summary":"Atualização do micro serviço Visão Empresa","status":"SUCCESSFUL","start":"2026-04-30T17:30:00.000-0300","end":"2026-04-30T17:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Visão Empresa"},{"key":"ITSM-1855","summary":"Atualização da aplicação de captura de títulos públicos","status":"Failed","start":"2026-04-30T18:00:00.000-0300","end":"2026-04-30T19:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Captura de Títulos Públicos"},{"key":"ITSM-1909","summary":"ApiThor - Implantação DataDog","status":"SUCCESSFUL","start":"2026-05-05T19:00:00.000-0300","end":null,"tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-1915","summary":"Correções no fluxo de upload e PDF - EasyTrade","status":"SUCCESSFUL","start":"2026-05-06T17:30:00.000-0300","end":"2026-05-06T18:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1914","summary":"Ajustes de identidade visual - Plataforma Fibra","status":"SUCCESSFUL","start":"2026-05-06T18:00:00.000-0300","end":"2026-05-06T18:30:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1911","summary":"Atualização captura de títulos públicos (com acompanhamento)","status":"SUCCESSFUL","start":"2026-05-06T19:00:00.000-0300","end":"2026-05-06T19:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Captura de Títulos Públicos"},{"key":"ITSM-1916","summary":"Redirect - Links do Site Midia","status":"SUCCESSFUL","start":"2026-05-06T21:00:00.000-0300","end":"2026-05-06T21:30:00.000-0300","tipo":"Emergencial","classificacao":"Site Mídia"},{"key":"ITSM-1937","summary":"Atualização do wallboard (website)","status":"SUCCESSFUL","start":"2026-05-07T20:00:00.000-0300","end":"2026-05-07T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-1978","summary":"Atualização da Base Histórica - campos Precia","status":"Failed","start":"2026-05-08T20:00:00.000-0300","end":"2026-05-08T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Base Histórica"},{"key":"ITSM-1912","summary":"Projeto Upgrade NY – Implantação do primeiro link 10G","status":"Em andamento","start":"2026-05-08T20:00:00.000-0300","end":"2026-05-08T22:00:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2017","summary":"Atualização de Microserviço no ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-05-11T20:00:00.000-0300","end":"2026-05-11T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-2021","summary":"Funcionalidade de Curva de Juros do Widget BB","status":"SUCCESSFUL","start":"2026-05-11T20:30:00.000-0300","end":"2026-05-11T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Widgets"},{"key":"ITSM-2060","summary":"Atualização Site do Político","status":"SUCCESSFUL","start":"2026-05-13T16:30:00.000-0300","end":"2026-05-13T16:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Broadcast Político Site"},{"key":"ITSM-1890","summary":"Migrar Bradesco Easytrade OTC para o WAF","status":"SUCCESSFUL","start":"2026-05-13T18:00:00.000-0300","end":"2026-05-13T19:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-2050","summary":"Atualização do Wallboard (website)","status":"SUCCESSFUL","start":"2026-05-13T20:00:00.000-0300","end":"2026-05-13T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-2049","summary":"Atualização do micro-service Broadcast Panel","status":"SUCCESSFUL","start":"2026-05-13T20:00:00.000-0300","end":"2026-05-13T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-2019","summary":"Migração do GCP - NY","status":"Em andamento","start":"2026-05-14T20:00:00.000-0300","end":"2026-05-14T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2013","summary":"Implantação Circuito Sucursal x Sp3","status":"SCHEDULED","start":"2026-05-15T11:00:00.000-0300","end":"2026-05-16T01:00:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2018","summary":"Projeto Upgrade NY – Implantação do Segundo link 10G","status":"SUCCESSFUL","start":"2026-05-15T20:00:00.000-0300","end":"2026-05-15T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-1980","summary":"Novos campos para a PRECIA","status":"SUCCESSFUL","start":"2026-05-16T15:00:00.000-0300","end":"2026-05-16T16:00:00.000-0300","tipo":"Normal","classificacao":"BCDATA"},{"key":"ITSM-2126","summary":"Atualização do AEServer","status":"SCHEDULED","start":"2026-05-16T21:00:00.000-0300","end":"2026-05-23T22:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Aeserver Ativos"},{"key":"ITSM-2088","summary":"Atualizar Microserviço - Thor API","status":"SUCCESSFUL","start":"2026-05-18T18:00:00.000-0300","end":"2026-05-18T18:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-2119","summary":"Atualização de versão do firewall VM SP3","status":"SCHEDULED","start":"2026-05-18T23:00:00.000-0300","end":"2026-05-19T00:30:00.000-0300","tipo":"Emergencial","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2124","summary":"Configurações BGP entre GCP e EDGE01 em NY","status":"SCHEDULED","start":"2026-05-19T20:00:00.000-0300","end":"2026-05-19T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2121","summary":"Atualização da Base Histórica - campos C2P","status":"SUCCESSFUL","start":"2026-05-19T20:00:00.000-0300","end":"2026-05-19T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Base Histórica"},{"key":"ITSM-2138","summary":"[OTC] Correções e ajustes no OTC","status":"SUCCESSFUL","start":"2026-05-20T18:00:00.000-0300","end":"2026-05-20T06:30:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-2110","summary":"Alteração no data-feed-stock - erro JsonObject","status":"SCHEDULED","start":"2026-06-04T19:00:00.000-0300","end":"2026-06-04T19:00:00.000-0300","tipo":"Normal","classificacao":"Microserviços"}];
+
+const STATUS_MAP = {
+  'Rascunho':     { dot: '🟡', label: 'Prevista' },
+  'Em andamento': { dot: '🟡', label: 'Prevista' },
+  'SCHEDULED':    { dot: '🔵', label: 'Agendada' },
+  'SUCCESSFUL':   { dot: '🟢', label: 'Aplicada' },
+  'Rejeitada':    { dot: '🔴', label: 'Reprovada' },
+  'Failed':       { dot: '🔴', label: 'Reprovada' },
+};
+
+// Feriados nacionais fixos (MM-DD)
+const FERIADOS_FIXOS = ['01-01','04-21','05-01','09-07','10-12','11-02','11-15','11-20','12-25'];
+
+// Feriados SP fixos (MM-DD)
+const FERIADOS_SP_FIXOS = ['01-25','07-09'];
+
+// Feriados móveis (YYYY-MM-DD) — Nacionais + SP até 2030
+const FERIADOS_MOVEIS = new Set([
+  // 2025
+  '2025-03-03','2025-03-04','2025-04-18','2025-06-19',
+  // 2026
+  '2026-02-16','2026-02-17','2026-04-03','2026-06-04',
+  // 2027
+  '2027-02-08','2027-02-09','2027-03-26','2027-05-27',
+  // 2028
+  '2028-02-28','2028-02-29','2028-04-14','2028-06-15',
+  // 2029
+  '2029-02-12','2029-02-13','2029-03-30','2029-05-31',
+  // 2030
+  '2030-03-04','2030-03-05','2030-04-19','2030-06-20',
+]);
+
+const FREEZE_START = '2026-05-21';
+const FREEZE_END   = '2026-06-02';
+
+function isFreezing(date) {
+  const k = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  return k >= FREEZE_START && k <= FREEZE_END;
+}
+
+function isFreezingStart(date) {
+  const k = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  return k === FREEZE_START;
+}
+
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WEEKDAYS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+let currentDate = new Date();
+let activeFilter = 'Todos';
+let byDate = {};
+
+function isFeriado(date) {
+  const mmdd = `${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  const yyyymmdd = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  return FERIADOS_FIXOS.includes(mmdd) || FERIADOS_SP_FIXOS.includes(mmdd) || FERIADOS_MOVEIS.has(yyyymmdd);
+}
+
+function getDayClass(date) {
+  const dow = date.getDay();
+  if (isFeriado(date)) return 'feriado';
+  if (dow === 0) return 'dom';
+  if (dow === 6) return 'sab';
+  return '';
+}
+
+function toLocalDateKey(s) { return s ? s.substring(0, 10) : null; }
+function toHora(s) { if (!s) return ''; const m = s.match(/T(\d{2}:\d{2})/); return m ? m[1] : ''; }
+
+function getMonthDays(year, month) {
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const days = [];
+  for (let i = 0; i < first.getDay(); i++) days.push({ date: new Date(year, month, -first.getDay() + i + 1), current: false });
+  for (let d = 1; d <= last.getDate(); d++) days.push({ date: new Date(year, month, d), current: true });
+  const rem = 7 - (days.length % 7);
+  if (rem < 7) for (let i = 1; i <= rem; i++) days.push({ date: new Date(year, month + 1, i), current: false });
+  return days;
+}
+
+function filteredIssues() {
+  return activeFilter === 'Todos' ? ISSUES : ISSUES.filter(i => i.tipo === activeFilter);
+}
+
+function calcStats(year, month) {
+  const base = (activeFilter === 'Todos' ? ISSUES : ISSUES.filter(i => i.tipo === activeFilter)).filter(i => {
+    const d = toLocalDateKey(i.start);
+    if (!d) return false;
+    const [y, m] = d.split('-').map(Number);
+    return y === year && m - 1 === month;
+  });
+  const c = { Prevista: 0, Agendada: 0, Aplicada: 0, Reprovada: 0 };
+  for (const i of base) { const l = (STATUS_MAP[i.status]||{label:'Outro'}).label; if (c[l] !== undefined) c[l]++; }
+  return { total: base.length, ...c };
+}
+
+function openPopup(title, issues) {
+  document.getElementById('popup-title').textContent = title;
+  document.getElementById('popup-count').textContent = `${issues.length} RDM${issues.length !== 1 ? 's' : ''}`;
+  document.getElementById('popup-body').innerHTML = issues.map(i => {
+    const s = STATUS_MAP[i.status] || { dot: '⚪', label: 'Outro' };
+    const hora = toHora(i.start);
+    const dataFmt = i.start ? (() => { const [y,m,d] = i.start.substring(0,10).split('-'); return `${d}/${m}/${y}`; })() : '';
+    return `<a class="popup-item" href="https://jiracloudae.atlassian.net/browse/${i.key}" target="_blank">
+      <span class="popup-dot">${s.dot}</span>
+      <div class="popup-info">
+        <div class="popup-key">${i.key}</div>
+        <div class="popup-summary" title="${i.summary}">${i.summary}</div>
+        <div class="popup-meta">
+          ${dataFmt ? `<span class="popup-hora">&#128197; ${dataFmt}</span>` : ''}
+          ${hora ? `<span class="popup-hora">&#128336; ${hora}</span>` : ''}
+          <span class="popup-status-label">${s.label}</span>
+          ${i.tipo ? `<span class="popup-tipo">${i.tipo}</span>` : ''}
+        </div>
+      </div>
+      <span class="popup-ext">&#8599;</span>
+    </a>`;
+  }).join('');
+  document.getElementById('popup-overlay').classList.remove('hidden');
+}
+
+function closePopup() { document.getElementById('popup-overlay').classList.add('hidden'); }
+
+function render() {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const today = new Date();
+  const days = getMonthDays(year, month);
+  const issues = filteredIssues();
+  const stats = calcStats(year, month);
+
+  byDate = {};
+  for (const i of issues) {
+    const k = toLocalDateKey(i.start);
+    if (k) { if (!byDate[k]) byDate[k] = []; byDate[k].push(i); }
+  }
+
+  // Issues do mês por status (para popup dos cards)
+  const monthIssues = (activeFilter === 'Todos' ? ISSUES : ISSUES.filter(i => i.tipo === activeFilter)).filter(i => {
+    const d = toLocalDateKey(i.start);
+    if (!d) return false;
+    const [y, m] = d.split('-').map(Number);
+    return y === year && m - 1 === month;
+  });
+
+  const tipos = ['Todos', ...new Set(ISSUES.map(i => i.tipo).filter(Boolean).sort())];
+
+  const statCards = [
+    { label: 'Total no mês', value: stats.total, key: null, emoji: '📋' },
+    { label: 'Previstas', value: stats.Prevista, key: 'Prevista', emoji: '🟡' },
+    { label: 'Agendadas', value: stats.Agendada, key: 'Agendada', emoji: '🔵' },
+    { label: 'Aplicadas', value: stats.Aplicada, key: 'Aplicada', emoji: '🟢' },
+    { label: 'Reprovadas', value: stats.Reprovada, key: 'Reprovada', emoji: '🔴' },
+  ];
+
+  document.getElementById('cal-root').innerHTML = `
+    <div class="cal-header">
+      <span class="cal-title">${MONTHS_PT[month]} ${year}</span>
+      <div class="cal-nav">
+        <button id="btn-prev">&#8249;</button>
+        <button id="btn-today">Hoje</button>
+        <button id="btn-next">&#8250;</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      ${statCards.map(c => `
+        <div class="stat-card">
+          <div class="stat-label">${c.emoji} ${c.label}</div>
+          ${c.key && c.value > 0
+            ? `<span class="stat-value-link" data-status="${c.key}">${c.value}</span>`
+            : `<div class="stat-value">${c.value}</div>`
+          }
+        </div>`).join('')}
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">Tipo:</span>
+      ${tipos.map(t => `<button class="filter-btn${activeFilter===t?' active':''}" data-tipo="${t}">${t}</button>`).join('')}
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        ${WEEKDAYS_PT.map((w, idx) => `<div class="cal-weekday${idx===0?' wk-dom':idx===6?' wk-sab':''}">${w}</div>`).join('')}
+      </div>
+      <div class="cal-days">
+        ${days.map(({ date, current }) => {
+          const k = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+          const isToday = date.toDateString() === today.toDateString();
+          const dayIssues = byDate[k] || [];
+          const shown = dayIssues.slice(0, 4);
+          const hidden = dayIssues.length - 4;
+          const dc = getDayClass(date);
+          const freezing = isFreezing(date);
+          const freezingStart = isFreezingStart(date);
+          return `<div class="cal-day${!current?' other-month':''}${isToday?' today':''}">
+            ${freezing ? `<div class="freeze-bar">${freezingStart ? '❄ Início do Freezing' : '❄ Freezing'}</div>` : ''}
+            <div class="day-num">
+              <span class="day-num-inner${dc?' '+dc:''}">${date.getDate()}</span>
+            </div>
+            <div class="rdm-list">
+              ${shown.map(i => {
+                const s = STATUS_MAP[i.status] || { dot: '⚪' };
+                const hora = toHora(i.start);
+                return `<a class="rdm-item" href="https://jiracloudae.atlassian.net/browse/${i.key}" target="_blank" title="${i.summary}${hora?' · '+hora:''}">
+                  <span class="rdm-dot">${s.dot}</span>
+                  <span class="rdm-key">${i.key}</span>
+                </a>`;
+              }).join('')}
+              ${hidden > 0 ? `<div class="more-badge" data-date="${k}">+${hidden} mais</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <div class="legend-item"><span>🟡</span> Prevista</div>
+      <div class="legend-item"><span>🔵</span> Agendada</div>
+      <div class="legend-item"><span>🟢</span> Aplicada</div>
+      <div class="legend-item"><span>🔴</span> Reprovada</div>
+
+    </div>
+  `;
+
+  // Nav
+  document.getElementById('btn-prev').onclick = () => { currentDate = new Date(year, month-1, 1); render(); };
+  document.getElementById('btn-next').onclick = () => { currentDate = new Date(year, month+1, 1); render(); };
+  document.getElementById('btn-today').onclick = () => { currentDate = new Date(); render(); };
+
+  // Filtro tipo
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.onclick = () => { activeFilter = b.dataset.tipo; render(); };
+  });
+
+  // Cards de stats — só popup, sem filtrar calendário
+  document.querySelectorAll('.stat-value-link').forEach(link => {
+    link.onclick = () => {
+      const key = link.dataset.status;
+      const filtered = monthIssues.filter(i => (STATUS_MAP[i.status]||{label:''}).label === key);
+      const emoji = statCards.find(c => c.key === key)?.emoji || '';
+      openPopup(`${emoji} ${key} — ${MONTHS_PT[month]} ${year}`, filtered);
+    };
+  });
+
+  // Mais badge
+  document.querySelectorAll('.more-badge').forEach(b => {
+    b.onclick = () => {
+      const dateStr = b.dataset.date;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const label = `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+      openPopup(label, byDate[dateStr] || []);
+    };
+  });
+}
+
+document.getElementById('popup-close').onclick = closePopup;
+document.getElementById('popup-overlay').onclick = (e) => { if (e.target === e.currentTarget) closePopup(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePopup(); });
+
+render();
+</script>
+</body>
+</html>
