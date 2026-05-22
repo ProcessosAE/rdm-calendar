@@ -11,18 +11,22 @@ auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_TOKEN)
 
 JQL = 'project = ITSM AND issuetype = "[System] Change" AND cf[10160] is not EMPTY ORDER BY cf[10160] ASC'
 
+FIELDS = ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
+
 def fetch_issues():
     issues = []
-    start = 0
-    max_results = 100
+    next_page_token = None
+
     while True:
         url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
         payload = {
             'jql': JQL,
-            'startAt': start,
-            'maxResults': max_results,
-            'fields': ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
+            'maxResults': 100,
+            'fields': FIELDS
         }
+        if next_page_token:
+            payload['nextPageToken'] = next_page_token
+
         headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -47,11 +51,11 @@ def fetch_issues():
                 'tipo': tipo_obj['value'] if tipo_obj else '',
                 'classificacao': classif_obj['value'] if classif_obj else ''
             })
-        total = data.get('total', 0)
-        print(f"Buscados: {start + len(batch)}/{total}")
-        if start + max_results >= total:
+        print(f"Buscados até agora: {len(issues)}")
+        next_page_token = data.get('nextPageToken')
+        if not next_page_token or data.get('isLast', True):
             break
-        start += max_results
+
     print(f"Total de RDMs: {len(issues)}")
     return issues
 
