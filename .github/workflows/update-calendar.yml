@@ -1,0 +1,39 @@
+name: Atualizar Calendário RDMs
+
+on:
+  repository_dispatch:
+    types: [rdm-updated]
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install requests
+
+      - name: Gerar calendário atualizado
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BASE_URL: https://jiracloudae.atlassian.net
+          JIRA_FILTER_ID: 13976
+        run: python generate_calendar.py
+
+      - name: Commit e push
+        run: |
+          git config user.name "ProcessosAE"
+          git config user.email "processos@estadao.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Atualiza calendário RDMs - $(date -u '+%d/%m/%Y %H:%M') UTC"
+          git push
