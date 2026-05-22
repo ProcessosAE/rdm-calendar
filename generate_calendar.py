@@ -8,9 +8,7 @@ JIRA_TOKEN    = os.environ['JIRA_API_TOKEN']
 JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
 
 auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_TOKEN)
-headers = { 'Accept': 'application/json' }
 
-# Usando customfield_10160 diretamente para evitar problema de encoding com caracteres especiais
 JQL = 'project = ITSM AND issuetype = "[System] Change" AND cf[10160] is not EMPTY ORDER BY cf[10160] ASC'
 
 def fetch_issues():
@@ -18,18 +16,21 @@ def fetch_issues():
     start = 0
     max_results = 100
     while True:
-        url = f"{JIRA_BASE_URL}/rest/api/2/search"
-        # Usar POST para evitar problemas de encoding na URL
+        url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
         payload = {
             'jql': JQL,
             'startAt': start,
             'maxResults': max_results,
             'fields': ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
         }
-        resp = requests.post(url, auth=auth, headers={**headers, 'Content-Type': 'application/json'}, json=payload)
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+        resp = requests.post(url, auth=auth, headers=headers, json=payload)
         print(f"Status: {resp.status_code}")
         if resp.status_code != 200:
-            print(f"Erro: {resp.text}")
+            print(f"Erro: {resp.text[:500]}")
         resp.raise_for_status()
         data = resp.json()
         batch = data.get('issues', [])
