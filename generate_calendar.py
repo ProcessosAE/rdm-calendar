@@ -9,10 +9,10 @@ JIRA_BASE_URL = os.environ['JIRA_BASE_URL']
 
 auth = HTTPBasicAuth(JIRA_EMAIL, JIRA_TOKEN)
 
-# JQL simplificado sem filtro de data para garantir que retorna resultados
-JQL = 'project = ITSM AND issuetype = "[System] Change" ORDER BY created ASC'
+# JQL mais amplo para debug — busca qualquer issue do projeto ITSM
+JQL = 'project = ITSM ORDER BY created DESC'
 
-FIELDS = ['summary', 'status', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
+FIELDS = ['summary', 'status', 'issuetype', 'customfield_10160', 'customfield_10161', 'customfield_10166', 'customfield_12320']
 
 def fetch_issues():
     issues = []
@@ -22,7 +22,7 @@ def fetch_issues():
         url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
         payload = {
             'jql': JQL,
-            'maxResults': 100,
+            'maxResults': 10,
             'fields': FIELDS
         }
         if next_page_token:
@@ -40,9 +40,13 @@ def fetch_issues():
         data = resp.json()
         batch = data.get('issues', [])
 
+        print(f"Total no Jira: {data.get('total', 0)}")
+        for i in batch[:3]:
+            f = i['fields']
+            print(f"  {i['key']} | tipo: {f['issuetype']['name']} | cf10160: {f.get('customfield_10160')}")
+
         for i in batch:
             f = i['fields']
-            # Só inclui RDMs que têm data de início preenchida
             if not f.get('customfield_10160'):
                 continue
             tipo_obj = f.get('customfield_10166')
@@ -57,7 +61,6 @@ def fetch_issues():
                 'classificacao': classif_obj['value'] if classif_obj else ''
             })
 
-        print(f"Buscados até agora: {len(issues)}")
         next_page_token = data.get('nextPageToken')
         if not next_page_token or data.get('isLast', True):
             break
