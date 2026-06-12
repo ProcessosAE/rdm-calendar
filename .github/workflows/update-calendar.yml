@@ -35,7 +35,7 @@ jobs:
           git config user.email "processos@estadao.com"
           git add index.html
           git diff --cached --quiet || git commit -m "Atualiza calendário RDMs - $(date -u '+%d/%m/%Y %H:%M') UTC"
-          git pull --rebase origin main
+          git pull --rebase -X theirs origin main
           git push
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
