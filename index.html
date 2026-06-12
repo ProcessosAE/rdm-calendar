@@ -16,18 +16,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .cal-nav button:hover { background: #f5f5f5; }
 
 /* Stats */
-.stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 12px; }
-.stat-card { background: #f7f7f7; border-radius: 8px; padding: 10px 12px; border: 2px solid transparent; }
-.stat-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat-card { background: #f7f7f7; border-radius: 8px; padding: 10px 12px; border: 2px solid transparent; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stat-left { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.stat-label { font-size: 11px; color: #666; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stat-value { font-size: 20px; font-weight: 600; color: #1a1a1a; }
 .stat-value-link { font-size: 20px; font-weight: 600; color: #0052cc; cursor: pointer; text-decoration: none; display: inline-block; }
 .stat-value-link:hover { text-decoration: underline; }
+.donut-wrap { position: relative; flex-shrink: 0; width: 44px; height: 44px; }
+.donut-wrap svg { width: 44px; height: 44px; }
+.donut-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: #555; }
 
 /* Filters */
-.filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-.filter-label { font-size: 11px; color: #666; }
-.filter-btn { font-size: 11px; padding: 3px 10px; border-radius: 6px; border: 1px solid #d0d0d0; cursor: pointer; background: #fff; color: #555; }
-.filter-btn.active { background: #f0f0f0; color: #1a1a1a; font-weight: 600; border-color: #999; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.filter-label { font-size: 11px; color: #666; margin-bottom: 6px; }
+.filter-card { background: #f7f7f7; border-radius: 8px; border: 1px solid #e0e0e0; padding: 10px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: border-color .15s; width: 160px; flex-shrink: 0; }
+.filter-card.active { border-color: #999; background: #fff; }
+.filter-card:hover { border-color: #bbb; }
+.filter-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.filter-name { font-size: 11px; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.filter-qty { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-top: 2px; }
+.filter-donut { position: relative; flex-shrink: 0; width: 40px; height: 40px; }
+.filter-donut svg { width: 40px; height: 40px; }
+.filter-donut-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: #555; }
 
 /* Grid */
 .cal-grid { border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; }
@@ -42,7 +53,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .cal-day.other-month { background: #fafafa; }
 .cal-day.today .day-num-inner { background: #0052cc; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
 .day-num { font-size: 11px; margin-bottom: 3px; font-weight: 600; display: flex; }
-.day-num-inner { color: #555; font-weight: 700; }
+.day-num-inner { color: #555; }
 .day-num-inner.dom { color: #c0392b; }
 .day-num-inner.sab { color: #0052cc; }
 .day-num-inner.feriado { color: #c0392b; }
@@ -68,7 +79,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .search-btn:hover { background: #f5f5f5; }
 
 /* Freezing */
-.freeze-bar { background: #fdecea; border-bottom: 2px solid #e74c3c; padding: 2px 5px; font-size: 9px; font-weight: 600; color: #c0392b; white-space: nowrap; overflow: hidden; }
+.freeze-bar { background: #e8f0fe; border-bottom: 2px solid #0052cc; padding: 2px 5px; font-size: 9px; font-weight: 600; color: #0052cc; white-space: nowrap; overflow: hidden; }
 
 /* Popup */
 .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
@@ -112,18 +123,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </div>
 
 <script>
-const ISSUES = [{"key": "ITSM-2199", "summary": "RDM - Atualização do rss_dino.pl em produção", "status": "Cancelado", "start": "2026-05-25T14:00:00.000-0300", "end": "", "tipo": "Emergencial", "classificacao": "Site Broadcast"}, {"key": "ITSM-2192", "summary": "Broader - validação de ambiente", "status": "ASSESSING", "start": "2026-06-04T15:00:00.000-0300", "end": "", "tipo": "Express (Padrão)", "classificacao": "Microserviços"}, {"key": "ITSM-2191", "summary": "[Datafeed] - Criação do Endpoint Filtro de Demonstrativos Financeiros (VisaoEmpresa)", "status": "Rascunho", "start": "2026-06-09T20:00:00.000-0300", "end": "", "tipo": "Express (Padrão)", "classificacao": "Visão Empresa"}, {"key": "ITSM-2185", "summary": "Tradução por idioma (WS) - Datafeed", "status": "Rascunho", "start": "2026-06-09T16:00:00.000-0300", "end": "", "tipo": "Normal", "classificacao": "Microserviços"}, {"key": "ITSM-2138", "summary": "[OTC] Correções e ajustes no OTC ", "status": "SUCCESSFUL", "start": "2026-05-20T18:00:00.000-0300", "end": "2026-05-20T06:30:00.000-0300", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-2126", "summary": "Atualização do AEServer ", "status": "SCHEDULED", "start": "2026-05-16T21:00:00.000-0300", "end": "2026-05-23T22:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Aeserver Ativos"}, {"key": "ITSM-2124", "summary": "A atividade consiste nas configurações de BGP entre o GCP e EDGE01 em NY", "status": "SCHEDULED", "start": "2026-05-19T20:00:00.000-0300", "end": "2026-05-19T23:30:00.000-0300", "tipo": "Normal", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-2121", "summary": "Atualização da Base Histórica para alterar os códigos AETP dos campos para ativos C2P", "status": "SUCCESSFUL", "start": "2026-05-19T20:00:00.000-0300", "end": "2026-05-19T21:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Base Histórica"}, {"key": "ITSM-2119", "summary": "Atualização de versão do firewall VM SP3 da versão r82 ( Take 43 ) para R82 ( take 91 )", "status": "SUCCESSFUL", "start": "2026-05-18T23:00:00.000-0300", "end": "2026-05-19T00:30:00.000-0300", "tipo": "Emergencial", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-2110", "summary": "Alteração no data-feed-stock para resolver erro de The node must be of type 'JsonObject'", "status": "SCHEDULED", "start": "2026-06-03T20:00:00.000-0300", "end": "2026-06-03T21:00:00.000-0300", "tipo": "Normal", "classificacao": "Microserviços"}, {"key": "ITSM-2088", "summary": "Atualizar Microserviço - Thor API - 2.0.0.195-trunk-4cc2545", "status": "SUCCESSFUL", "start": "2026-05-18T18:00:00.000-0300", "end": "2026-05-18T18:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Microserviços"}, {"key": "ITSM-2060", "summary": "Atualização Site do Político", "status": "SUCCESSFUL", "start": "2026-05-13T16:30:00.000-0300", "end": "2026-05-13T16:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Broadcast Político Site"}, {"key": "ITSM-2050", "summary": "Atualização do Wallboard (website)", "status": "SUCCESSFUL", "start": "2026-05-13T20:00:00.000-0300", "end": "2026-05-13T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Wallboard"}, {"key": "ITSM-2049", "summary": "Atualização do micro-service Broadcast Panel", "status": "SUCCESSFUL", "start": "2026-05-13T20:00:00.000-0300", "end": "2026-05-13T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Wallboard"}, {"key": "ITSM-2021", "summary": "Funcionalidade de Curva de Juros do Widget BB", "status": "SUCCESSFUL", "start": "2026-05-11T20:30:00.000-0300", "end": "2026-05-11T20:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Widgets"}, {"key": "ITSM-2019", "summary": "Migração do GCP - NY", "status": "Em andamento", "start": "2026-05-14T20:00:00.000-0300", "end": "2026-05-14T23:30:00.000-0300", "tipo": "Normal", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-2018", "summary": "Projeto Upgrade NY – Implantação do Segundo link 10G", "status": "SUCCESSFUL", "start": "2026-05-15T20:00:00.000-0300", "end": "2026-05-15T23:30:00.000-0300", "tipo": "Normal", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-2017", "summary": "Atualização de Microserviço no ambiente V3 - OMS", "status": "SUCCESSFUL", "start": "2026-05-11T20:00:00.000-0300", "end": "2026-05-11T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Microserviços"}, {"key": "ITSM-2013", "summary": "Implantação Circuito Sucursal x Sp3", "status": "SCHEDULED", "start": "2026-05-15T11:00:00.000-0300", "end": "2026-05-16T01:00:00.000-0300", "tipo": "Normal", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-1980", "summary": "Novos campos para a PRECIA", "status": "SUCCESSFUL", "start": "2026-05-16T15:00:00.000-0300", "end": "2026-05-16T16:00:00.000-0300", "tipo": "Normal", "classificacao": "BCDATA"}, {"key": "ITSM-1978", "summary": "Atualização da Base Histórica para inclusão de campos para bolsa Precia", "status": "Failed", "start": "2026-05-08T20:00:00.000-0300", "end": "2026-05-08T20:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Base Histórica"}, {"key": "ITSM-1937", "summary": "Atualização do wallboard (website)", "status": "SUCCESSFUL", "start": "2026-05-07T20:00:00.000-0300", "end": "2026-05-07T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Wallboard"}, {"key": "ITSM-1916", "summary": "Redirect - Links do Site Midia", "status": "SUCCESSFUL", "start": "2026-05-06T21:00:00.000-0300", "end": "2026-05-06T21:30:00.000-0300", "tipo": "Emergencial", "classificacao": "Site Mídia"}, {"key": "ITSM-1915", "summary": "Correções no fluxo de upload de documentos e geração de PDF, além de melhoria no perfil do usuário no EasyTrade, visando garantir integridade dos documentos, estabilidade de integração e melhor experiência do usuário.", "status": "SUCCESSFUL", "start": "2026-05-06T17:30:00.000-0300", "end": "2026-05-06T18:00:00.000-0300", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1914", "summary": "Ajustes de identidade visual e disclaimer para a Plataforma Fibra e correção de URL da instância EasyTrade Bradesco.", "status": "SUCCESSFUL", "start": "2026-05-06T18:00:00.000-0300", "end": "2026-05-06T18:30:00.000-0300", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1912", "summary": " Projeto Upgrade NY – Implantação do primeiro link 10G", "status": "Em andamento", "start": "2026-05-08T20:00:00.000-0300", "end": "2026-05-08T22:00:00.000-0300", "tipo": "Normal", "classificacao": "Infraestrutura Redes"}, {"key": "ITSM-1911", "summary": "Atualização da aplicação de captura de dados de títulos públicos do Banco Central (execução com acompanhamento)", "status": "SUCCESSFUL", "start": "2026-05-06T19:00:00.000-0300", "end": "2026-05-06T19:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Captura de Títulos Públicos"}, {"key": "ITSM-1909", "summary": "ApiThor - Implantação DataDog", "status": "SUCCESSFUL", "start": "2026-05-05T19:00:00.000-0300", "end": "", "tipo": "Express (Padrão)", "classificacao": "Microserviços"}, {"key": "ITSM-1890", "summary": "Migrar Bradesco Easytrade OTC para o WAF", "status": "SUCCESSFUL", "start": "2026-05-13T18:00:00.000-0300", "end": "2026-05-13T19:00:00.000-0300", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1875", "summary": "Atualização do micro serviço Visão Empresa para correção balanços desatualizados", "status": "SUCCESSFUL", "start": "2026-04-30T17:30:00.000-0300", "end": "2026-04-30T17:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Visão Empresa"}, {"key": "ITSM-1871", "summary": "Ajuste no carregamento dinâmico de artigos via AJAX no Reports (WordPress + Electron)", "status": "SUCCESSFUL", "start": "2026-04-30T17:00:00.000-0300", "end": "2026-04-30T17:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Novo Terminal"}, {"key": "ITSM-1858", "summary": "Novo Fundos - Correção de bugs na visão geral (carteira, filtros e pesquisa) e implementação de melhorias na jornada do usuário (histórico de cotas, hierarquia, menu e fronteira eficiente) no projeto.", "status": "SUCCESSFUL", "start": "2026-04-29T20:30:00.000-0300", "end": "2026-04-29T20:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Fundos de Investimento"}, {"key": "ITSM-1855", "summary": "Atualização da aplicação de captura de dados de títulos públicos do Banco Central", "status": "Failed", "start": "2026-04-30T18:00:00.000-0300", "end": "2026-04-30T19:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Captura de Títulos Públicos"}, {"key": "ITSM-1841", "summary": "Atualização AEServer NII - Versão \"trunk\" build \"189\"", "status": "Em andamento", "start": "2026-04-28T20:00:00.000-0300", "end": "2026-04-28T21:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Aeserver Ativos"}, {"key": "ITSM-1839", "summary": "Correções no fluxo de upload de documentos e geração de PDF, além de melhoria no perfil do usuário no EasyTrade", "status": "SUCCESSFUL", "start": "2026-04-29T18:00:00.000-0300", "end": "", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1838", "summary": "Correções no fluxo de upload de documentos e geração de PDF, além de melhoria no perfil do usuário no EasyTrade.", "status": "SUCCESSFUL", "start": "2026-04-29T18:00:00.000-0300", "end": "", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1834", "summary": "Novo Fundos - Correção de bugs na visão geral (carteira, filtros e pesquisa) e implementação de melhorias na jornada do usuário (histórico de cotas, hierarquia, menu e fronteira eficiente) no projeto.", "status": "Failed", "start": "2026-04-28T20:00:00.000-0300", "end": "2026-04-28T20:00:00.000-0300", "tipo": "Normal", "classificacao": "Fundos de Investimento"}, {"key": "ITSM-1833", "summary": "REPORTS Corrigir funcionamento de popup e impressão no Reports (WordPress embarcado em app desktop)", "status": "Failed", "start": "2026-04-29T20:00:00.000-0300", "end": "2026-04-29T20:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "Novo Terminal"}, {"key": "ITSM-1816", "summary": "Separar instancia MYSQL Princing Engine (Motor OTC)", "status": "SUCCESSFUL", "start": "2026-04-29T18:00:00.000-0300", "end": "2026-04-29T19:00:00.000-0300", "tipo": "Normal", "classificacao": "Otc"}, {"key": "ITSM-1814", "summary": "Atualização micro-serviço ambiente V3 - OMS", "status": "SUCCESSFUL", "start": "2026-04-28T21:00:00.000-0300", "end": "2026-04-28T21:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": "OMS"}, {"key": "ITSM-1788", "summary": "[Broader AI] Ajuste de logo e cores aplicadas ao selecionar fonte e nas perguntas feitas pelo usuário.", "status": "SUCCESSFUL", "start": "2026-04-24T21:00:00.000-0300", "end": "2026-04-24T21:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": ""}, {"key": "ITSM-1787", "summary": "[Broadcast Político] Ajuste de tamanho da fonte das Manchetes da área de \"Destaques\" e \"Broadcast TV\" exibido na Home.", "status": "SUCCESSFUL", "start": "2026-04-24T20:30:00.000-0300", "end": "2026-04-24T20:30:00.000-0300", "tipo": "Express (Padrão)", "classificacao": ""}, {"key": "ITSM-1764", "summary": "Atualização de microsserviço ambiente V3 - Stock", "status": "SUCCESSFUL", "start": "2026-04-23T20:00:00.000-0300", "end": "2026-04-23T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": ""}, {"key": "ITSM-1761", "summary": "Atualização micro-serviço ambiente V3 - OMS", "status": "SUCCESSFUL", "start": "2026-04-22T20:00:00.000-0300", "end": "2026-04-22T20:00:00.000-0300", "tipo": "Express (Padrão)", "classificacao": ""}];
+const ISSUES = [{"key":"ITSM-1761","summary":"Atualização micro-serviço ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-04-22T20:00:00.000-0300","end":"2026-04-22T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1764","summary":"Atualização de microsserviço ambiente V3 - Stock","status":"SUCCESSFUL","start":"2026-04-23T20:00:00.000-0300","end":"2026-04-23T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1787","summary":"[Broadcast Político] Ajuste de tamanho da fonte das Manchetes","status":"SUCCESSFUL","start":"2026-04-24T20:30:00.000-0300","end":"2026-04-24T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1788","summary":"[Broader AI] Ajuste de logo e cores","status":"SUCCESSFUL","start":"2026-04-24T21:00:00.000-0300","end":"2026-04-24T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":""},{"key":"ITSM-1841","summary":"Atualização AEServer NII - Versão trunk build 189","status":"Em andamento","start":"2026-04-28T20:00:00.000-0300","end":"2026-04-28T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Aeserver Ativos"},{"key":"ITSM-1834","summary":"Novo Fundos - Correção de bugs na visão geral","status":"Failed","start":"2026-04-28T20:00:00.000-0300","end":"2026-04-28T20:00:00.000-0300","tipo":"Normal","classificacao":"Fundos de Investimento"},{"key":"ITSM-1814","summary":"Atualização micro-serviço ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-04-28T21:00:00.000-0300","end":"2026-04-28T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"OMS"},{"key":"ITSM-1839","summary":"Correções no fluxo de upload de documentos - EasyTrade","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":null,"tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1838","summary":"Correções no fluxo de upload e geração de PDF - EasyTrade","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":null,"tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1816","summary":"Separar instancia MYSQL Princing Engine (Motor OTC)","status":"SUCCESSFUL","start":"2026-04-29T18:00:00.000-0300","end":"2026-04-29T19:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1833","summary":"REPORTS Corrigir funcionamento de popup e impressão","status":"Failed","start":"2026-04-29T20:00:00.000-0300","end":"2026-04-29T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Novo Terminal"},{"key":"ITSM-1858","summary":"Novo Fundos - Correção de bugs na visão geral","status":"SUCCESSFUL","start":"2026-04-29T20:30:00.000-0300","end":"2026-04-29T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Fundos de Investimento"},{"key":"ITSM-1871","summary":"Ajuste no carregamento dinâmico de artigos via AJAX","status":"SUCCESSFUL","start":"2026-04-30T17:00:00.000-0300","end":"2026-04-30T17:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Novo Terminal"},{"key":"ITSM-1875","summary":"Atualização do micro serviço Visão Empresa","status":"SUCCESSFUL","start":"2026-04-30T17:30:00.000-0300","end":"2026-04-30T17:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Visão Empresa"},{"key":"ITSM-1855","summary":"Atualização da aplicação de captura de títulos públicos","status":"Failed","start":"2026-04-30T18:00:00.000-0300","end":"2026-04-30T19:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Captura de Títulos Públicos"},{"key":"ITSM-1909","summary":"ApiThor - Implantação DataDog","status":"SUCCESSFUL","start":"2026-05-05T19:00:00.000-0300","end":null,"tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-1915","summary":"Correções no fluxo de upload e PDF - EasyTrade","status":"SUCCESSFUL","start":"2026-05-06T17:30:00.000-0300","end":"2026-05-06T18:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1914","summary":"Ajustes de identidade visual - Plataforma Fibra","status":"SUCCESSFUL","start":"2026-05-06T18:00:00.000-0300","end":"2026-05-06T18:30:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-1911","summary":"Atualização captura de títulos públicos (com acompanhamento)","status":"SUCCESSFUL","start":"2026-05-06T19:00:00.000-0300","end":"2026-05-06T19:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Captura de Títulos Públicos"},{"key":"ITSM-1916","summary":"Redirect - Links do Site Midia","status":"SUCCESSFUL","start":"2026-05-06T21:00:00.000-0300","end":"2026-05-06T21:30:00.000-0300","tipo":"Emergencial","classificacao":"Site Mídia"},{"key":"ITSM-1937","summary":"Atualização do wallboard (website)","status":"SUCCESSFUL","start":"2026-05-07T20:00:00.000-0300","end":"2026-05-07T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-1978","summary":"Atualização da Base Histórica - campos Precia","status":"Failed","start":"2026-05-08T20:00:00.000-0300","end":"2026-05-08T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Base Histórica"},{"key":"ITSM-1912","summary":"Projeto Upgrade NY – Implantação do primeiro link 10G","status":"Em andamento","start":"2026-05-08T20:00:00.000-0300","end":"2026-05-08T22:00:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2017","summary":"Atualização de Microserviço no ambiente V3 - OMS","status":"SUCCESSFUL","start":"2026-05-11T20:00:00.000-0300","end":"2026-05-11T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-2021","summary":"Funcionalidade de Curva de Juros do Widget BB","status":"SUCCESSFUL","start":"2026-05-11T20:30:00.000-0300","end":"2026-05-11T20:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Widgets"},{"key":"ITSM-2060","summary":"Atualização Site do Político","status":"SUCCESSFUL","start":"2026-05-13T16:30:00.000-0300","end":"2026-05-13T16:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Broadcast Político Site"},{"key":"ITSM-1890","summary":"Migrar Bradesco Easytrade OTC para o WAF","status":"SUCCESSFUL","start":"2026-05-13T18:00:00.000-0300","end":"2026-05-13T19:00:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-2050","summary":"Atualização do Wallboard (website)","status":"SUCCESSFUL","start":"2026-05-13T20:00:00.000-0300","end":"2026-05-13T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-2049","summary":"Atualização do micro-service Broadcast Panel","status":"SUCCESSFUL","start":"2026-05-13T20:00:00.000-0300","end":"2026-05-13T20:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Wallboard"},{"key":"ITSM-2019","summary":"Migração do GCP - NY","status":"Em andamento","start":"2026-05-14T20:00:00.000-0300","end":"2026-05-14T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2013","summary":"Implantação Circuito Sucursal x Sp3","status":"SCHEDULED","start":"2026-05-15T11:00:00.000-0300","end":"2026-05-16T01:00:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2018","summary":"Projeto Upgrade NY – Implantação do Segundo link 10G","status":"SUCCESSFUL","start":"2026-05-15T20:00:00.000-0300","end":"2026-05-15T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-1980","summary":"Novos campos para a PRECIA","status":"SUCCESSFUL","start":"2026-05-16T15:00:00.000-0300","end":"2026-05-16T16:00:00.000-0300","tipo":"Normal","classificacao":"BCDATA"},{"key":"ITSM-2126","summary":"Atualização do AEServer","status":"SCHEDULED","start":"2026-05-16T21:00:00.000-0300","end":"2026-05-23T22:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Aeserver Ativos"},{"key":"ITSM-2088","summary":"Atualizar Microserviço - Thor API","status":"SUCCESSFUL","start":"2026-05-18T18:00:00.000-0300","end":"2026-05-18T18:30:00.000-0300","tipo":"Express (Padrão)","classificacao":"Microserviços"},{"key":"ITSM-2119","summary":"Atualização de versão do firewall VM SP3","status":"SCHEDULED","start":"2026-05-18T23:00:00.000-0300","end":"2026-05-19T00:30:00.000-0300","tipo":"Emergencial","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2124","summary":"Configurações BGP entre GCP e EDGE01 em NY","status":"SCHEDULED","start":"2026-05-19T20:00:00.000-0300","end":"2026-05-19T23:30:00.000-0300","tipo":"Normal","classificacao":"Infraestrutura Redes"},{"key":"ITSM-2121","summary":"Atualização da Base Histórica - campos C2P","status":"SUCCESSFUL","start":"2026-05-19T20:00:00.000-0300","end":"2026-05-19T21:00:00.000-0300","tipo":"Express (Padrão)","classificacao":"Base Histórica"},{"key":"ITSM-2138","summary":"[OTC] Correções e ajustes no OTC","status":"SUCCESSFUL","start":"2026-05-20T18:00:00.000-0300","end":"2026-05-20T06:30:00.000-0300","tipo":"Normal","classificacao":"Otc"},{"key":"ITSM-2110","summary":"Alteração no data-feed-stock - erro JsonObject","status":"SCHEDULED","start":"2026-06-04T19:00:00.000-0300","end":"2026-06-04T19:00:00.000-0300","tipo":"Normal","classificacao":"Microserviços"}];
 
 const STATUS_MAP = {
   'Rascunho':     { dot: '🟡', label: 'Prevista' },
   'Em andamento': { dot: '🟡', label: 'Prevista' },
-  'ASSESSING':    { dot: '🟡', label: 'Prevista' },
+  'In Progress':  { dot: '🟡', label: 'Prevista' },
   'SCHEDULED':    { dot: '🔵', label: 'Agendada' },
   'SUCCESSFUL':   { dot: '🟢', label: 'Aplicada' },
   'Rejeitada':    { dot: '🔴', label: 'Reprovada' },
   'Failed':       { dot: '🔴', label: 'Reprovada' },
   'Cancelado':    { dot: '⚪', label: 'Cancelada' },
-  'CANCELADO':    { dot: '⚪', label: 'Cancelada' },
+  'Canceled':     { dot: '⚪', label: 'Cancelada' },
 };
 
 // Feriados nacionais fixos (MM-DD)
@@ -270,13 +281,19 @@ function render() {
 
   const tipos = ['Todos', ...new Set(ISSUES.map(i => i.tipo).filter(Boolean).sort())];
 
+  const STAT_COLORS = { 'Prevista': '#f59e0b', 'Agendada': '#0052cc', 'Aplicada': '#059669', 'Reprovada': '#e74c3c', 'Cancelada': '#94a3b8' };
+  const TIPO_COLORS = { 'Todos': '#94a3b8', 'Emergencial': '#e74c3c', 'Express (Padrão)': '#0052cc', 'Normal': '#059669' };
+  const CIRC44 = 100.53;
+  const CIRC40 = 87.96;
+  function dashArray(pct, circ) { const f = Math.round((pct / 100) * circ * 10) / 10; return f + ' ' + Math.round((circ - f) * 10) / 10; }
+
   const statCards = [
-    { label: 'Total no mês', value: stats.total, key: null, emoji: '📋' },
-    { label: 'Previstas', value: stats.Prevista, key: 'Prevista', emoji: '🟡' },
-    { label: 'Agendadas', value: stats.Agendada, key: 'Agendada', emoji: '🔵' },
-    { label: 'Aplicadas', value: stats.Aplicada, key: 'Aplicada', emoji: '🟢' },
-    { label: 'Reprovadas', value: stats.Reprovada, key: 'Reprovada', emoji: '🔴' },
-    { label: 'Canceladas', value: stats.Cancelada, key: 'Cancelada', emoji: '⚪' },
+    { label: 'Total no mês', value: stats.total, key: null, emoji: '📋', color: '#94a3b8' },
+    { label: 'Previstas', value: stats.Prevista, key: 'Prevista', emoji: '🟡', color: '#f59e0b' },
+    { label: 'Agendadas', value: stats.Agendada, key: 'Agendada', emoji: '🔵', color: '#0052cc' },
+    { label: 'Aplicadas', value: stats.Aplicada, key: 'Aplicada', emoji: '🟢', color: '#059669' },
+    { label: 'Reprovadas', value: stats.Reprovada, key: 'Reprovada', emoji: '🔴', color: '#e74c3c' },
+    { label: 'Canceladas', value: stats.Cancelada, key: 'Cancelada', emoji: '⚪', color: '#94a3b8' },
   ];
 
   document.getElementById('cal-root').innerHTML = `
@@ -284,8 +301,7 @@ function render() {
       <span class="cal-title">${MONTHS_PT[month]} ${year}</span>
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="search-wrapper">
-          <span style="font-size:11px;color:#666;white-space:nowrap;">Localize sua RDM</span>
-          <input class="search-input" id="search-input" type="text" maxlength="5" inputmode="numeric" pattern="[0-9]*" placeholder="" title="Informe o número da sua RDM" />
+          <input class="search-input" id="search-input" type="text" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="" title="Informe o número da sua RDM" />
           <button class="search-btn" id="search-btn" title="Buscar RDM">&#128269;</button>
         </div>
         <div class="cal-nav">
@@ -296,20 +312,47 @@ function render() {
       </div>
     </div>
 
-    <div class="stats-row">
-      ${statCards.map(c => `
-        <div class="stat-card">
-          <div class="stat-label">${c.emoji} ${c.label}</div>
-          ${c.key && c.value > 0
-            ? `<span class="stat-value-link" data-status="${c.key}">${c.value}</span>`
-            : `<div class="stat-value">${c.value}</div>`
-          }
-        </div>`).join('')}
+    <div class="stats-row" style="grid-template-columns:repeat(6,1fr)">
+      ${statCards.map(c => {
+        const pct = stats.total > 0 && c.key ? Math.round((c.value / stats.total) * 100) : (c.key ? 0 : 100);
+        const da = dashArray(pct, CIRC44);
+        const donut = `<div class="donut-wrap"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="#e0e0e0" stroke-width="5"/><circle cx="22" cy="22" r="16" fill="none" stroke="${c.color}" stroke-width="5" stroke-dasharray="${da}" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg><div class="donut-pct">${pct}%</div></div>`;
+        return `<div class="stat-card">
+          <div class="stat-left">
+            <div class="stat-label">${c.emoji} ${c.label}</div>
+            ${c.key && c.value > 0
+              ? `<span class="stat-value-link" data-status="${c.key}">${c.value}</span>`
+              : `<div class="stat-value">${c.value}</div>`
+            }
+          </div>
+          ${donut}
+        </div>`;
+      }).join('')}
     </div>
 
+    <div class="filter-label">Tipo:</div>
     <div class="filter-row">
-      <span class="filter-label">Tipo:</span>
-      ${tipos.map(t => `<button class="filter-btn${activeFilter===t?' active':''}" data-tipo="${t}">${t}</button>`).join('')}
+      ${tipos.map(t => {
+        const qty = (activeFilter === 'Todos' ? ISSUES : ISSUES).filter(i => {
+          const d = toLocalDateKey(i.start); if (!d) return false;
+          const [y2,m2] = d.split('-').map(Number); return y2===year && m2-1===month && (t==='Todos' || i.tipo===t);
+        }).length;
+        const total = filteredIssues().filter(i => { const d = toLocalDateKey(i.start); if (!d) return false; const [y2,m2] = d.split('-').map(Number); return y2===year && m2-1===month; }).length;
+        const baseTot = ISSUES.filter(i => { const d = toLocalDateKey(i.start); if (!d) return false; const [y2,m2] = d.split('-').map(Number); return y2===year && m2-1===month; }).length;
+        const pct = baseTot > 0 ? Math.round((qty / baseTot) * 100) : 0;
+        const color = TIPO_COLORS[t] || '#94a3b8';
+        const da = dashArray(pct, CIRC40);
+        return `<div class="filter-card${activeFilter===t?' active':''}" data-tipo="${t}">
+          <div class="filter-info">
+            <div class="filter-name">${t}</div>
+            <div class="filter-qty">${qty}</div>
+          </div>
+          <div class="filter-donut">
+            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="#e0e0e0" stroke-width="5"/><circle cx="20" cy="20" r="14" fill="none" stroke="${color}" stroke-width="5" stroke-dasharray="${da}" stroke-linecap="round" transform="rotate(-90 20 20)"/></svg>
+            <div class="filter-donut-pct">${pct}%</div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
 
     <div class="cal-grid">
@@ -352,7 +395,7 @@ function render() {
       <div class="legend-item"><span>🔵</span> Agendada</div>
       <div class="legend-item"><span>🟢</span> Aplicada</div>
       <div class="legend-item"><span>🔴</span> Reprovada</div>
-      <div class="legend-item"><span>⚪</span> Cancelada</div>
+
     </div>
   `;
 
@@ -381,7 +424,7 @@ function render() {
   });
 
   // Filtro tipo
-  document.querySelectorAll('.filter-btn').forEach(b => {
+  document.querySelectorAll('.filter-card').forEach(b => {
     b.onclick = () => { activeFilter = b.dataset.tipo; render(); };
   });
 
